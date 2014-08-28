@@ -352,30 +352,38 @@ class ToolController {
     }
 
     private String getCartridgeXML(){
+        def lti_endpoint = ltiService.retrieveBasicLtiEndpoint() + '/' + grailsApplication.metadata['app.name']
+        def launch_url = 'http://' + lti_endpoint + '/tool'
+        def secure_launch_url = 'https://' + lti_endpoint + '/tool'
+        def icon = 'http://' + lti_endpoint + '/images/icon.ico'
+        def secure_icon = 'https://' + lti_endpoint + '/images/icon.ico'
+        def isSSLEnabled = ltiService.isSSLEnabled('https://' + lti_endpoint + '/tool/test')
         def cartridge = '' +
-        '<?xml version="1.0" encoding="UTF-8"?>' +
-        '<cartridge_basiclti_link xmlns="http://www.imsglobal.org/xsd/imslticc_v1p0"' +
-        '       xmlns:blti = "http://www.imsglobal.org/xsd/imsbasiclti_v1p0"' +
-        '       xmlns:lticm ="http://www.imsglobal.org/xsd/imslticm_v1p0"' +
-        '       xmlns:lticp ="http://www.imsglobal.org/xsd/imslticp_v1p0"' +
-        '       xmlns:xsi = "http://www.w3.org/2001/XMLSchema-instance"' +
-        '       xsi:schemaLocation = "http://www.imsglobal.org/xsd/imslticc_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticc_v1p0.xsd' +
-        '                             http://www.imsglobal.org/xsd/imsbasiclti_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imsbasiclti_v1p0.xsd' +
-        '                             http://www.imsglobal.org/xsd/imslticm_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticm_v1p0.xsd' +
-        '                             http://www.imsglobal.org/xsd/imslticp_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticp_v1p0.xsd">' +
-        '    <blti:title>BigBlueButton</blti:title>' +
-        '    <blti:description>Single Sign On into BigBlueButton</blti:description>' +
-        '    <blti:launch_url>' + ltiService.retrieveBasicLtiEndpoint() + '</blti:launch_url>' +
-        '    <blti:icon>' + ltiService.retrieveIconEndpoint() + '</blti:icon>' +
-        '    <blti:vendor>' +
-        '        <lticp:code>BBB</lticp:code>' +
-        '        <lticp:name>BigBlueButton</lticp:name>' +
-        '        <lticp:description>Open source web conferencing system for distance learning.</lticp:description>' +
-        '        <lticp:url>http://www.bigbluebutton.org/</lticp:url>' +
-        '    </blti:vendor>' +
-        '    <cartridge_bundle identifierref="BLTI001_Bundle"/>' +
-        '    <cartridge_icon identifierref="BLTI001_Icon"/>' +
-        '</cartridge_basiclti_link>'
+                '<?xml version="1.0" encoding="UTF-8"?>' +
+                '<cartridge_basiclti_link xmlns="http://www.imsglobal.org/xsd/imslticc_v1p0"' +
+                '       xmlns:blti = "http://www.imsglobal.org/xsd/imsbasiclti_v1p0"' +
+                '       xmlns:lticm ="http://www.imsglobal.org/xsd/imslticm_v1p0"' +
+                '       xmlns:lticp ="http://www.imsglobal.org/xsd/imslticp_v1p0"' +
+                '       xmlns:xsi = "http://www.w3.org/2001/XMLSchema-instance"' +
+                '       xsi:schemaLocation = "http://www.imsglobal.org/xsd/imslticc_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticc_v1p0.xsd' +
+                '                             http://www.imsglobal.org/xsd/imsbasiclti_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imsbasiclti_v1p0.xsd' +
+                '                             http://www.imsglobal.org/xsd/imslticm_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticm_v1p0.xsd' +
+                '                             http://www.imsglobal.org/xsd/imslticp_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticp_v1p0.xsd">' +
+                '    <blti:title>BigBlueButton</blti:title>' +
+                '    <blti:description>Single Sign On into BigBlueButton</blti:description>' +
+                '    <blti:launch_url>' + launch_url + '</blti:launch_url>' +
+                (isSSLEnabled? '    <blti:secure_launch_url>' + secure_launch_url + '</blti:secure_launch_url>': '') +
+                '    <blti:icon>' + icon + '</blti:icon>' +
+                (isSSLEnabled? '    <blti:secure_icon>' + secure_icon + '</blti:secure_icon>': '') +
+                '    <blti:vendor>' +
+                '        <lticp:code>BBB</lticp:code>' +
+                '        <lticp:name>BigBlueButton</lticp:name>' +
+                '        <lticp:description>Open source web conferencing system for distance learning.</lticp:description>' +
+                '        <lticp:url>http://www.bigbluebutton.org/</lticp:url>' +
+                '    </blti:vendor>' +
+                '    <cartridge_bundle identifierref="BLTI001_Bundle"/>' +
+                '    <cartridge_icon identifierref="BLTI001_Icon"/>' +
+                '</cartridge_basiclti_link>'
 
         return cartridge
     }
