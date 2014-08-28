@@ -31,6 +31,7 @@ import net.oauth.OAuthConsumer;
 import net.oauth.OAuthException;
 import net.oauth.OAuthMessage;
 import net.oauth.OAuthProblemException;
+import org.apache.commons.codec.binary.Base64;
 
 /**
  * A pair of algorithms for computing and verifying an OAuth digital signature.

@@ -250,10 +250,8 @@ public class IMSPOXRequest {
 
 	public void parsePostBody()
 	{
+		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		try {
-			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-			dbf.setFeature("http://xml.org/sax/features/external-general-entities", false); 
-			dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false); 
 			DocumentBuilder db = dbf.newDocumentBuilder();
 			postDom = db.parse(new ByteArrayInputStream(postBody.getBytes()));
 		}catch(Exception e) {
@@ -395,11 +393,6 @@ public class IMSPOXRequest {
 	public String getResponseFailure(String desc, Properties minor)
 	{
 		return getResponse(desc, null, null, null, minor, null);
-	}
-
-	public String getResponseFailure(String desc, Properties minor, String bodyString)
-	{
-		return getResponse(desc, null, null, null, minor, bodyString);
 	}
 
 	public String getResponseSuccess(String desc, String bodyString)

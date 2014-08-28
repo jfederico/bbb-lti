@@ -100,6 +100,7 @@ public class SimpleOAuthValidator implements OAuthValidator {
         // Check for repeated oauth_ parameters:
         boolean repeated = false;
         Map<String, Collection<String>> nameToValues = new HashMap<String, Collection<String>>();
+        String repeatedParameter = "";
         for (Map.Entry<String, String> parameter : message.getParameters()) {
             String name = parameter.getKey();
             if (SINGLE_PARAMETERS.contains(name)) {
@@ -109,6 +110,7 @@ public class SimpleOAuthValidator implements OAuthValidator {
                     nameToValues.put(name, values);
                 } else {
                     repeated = true;
+                    repeatedParameter = name;
                 }
                 values.add(parameter.getValue());
             }
@@ -124,7 +126,7 @@ public class SimpleOAuthValidator implements OAuthValidator {
                     }
                 }
             }
-            OAuthProblemException problem = new OAuthProblemException(OAuth.Problems.PARAMETER_REJECTED);
+            OAuthProblemException problem = new OAuthProblemException(OAuth.Problems.PARAMETER_REJECTED + ":" + repeatedParameter);
             problem.setParameter(OAuth.Problems.OAUTH_PARAMETERS_REJECTED, OAuth.formEncode(rejected));
             throw problem;
         }

@@ -19,6 +19,7 @@ package net.oauth;
 import java.util.HashMap;
 import java.util.Map;
 import net.oauth.http.HttpMessage;
+import net.oauth.http.HttpResponseMessage;
 
 /**
  * Describes an OAuth-related problem, using a set of named parameters. One
@@ -71,7 +72,7 @@ public class OAuthProblemException extends OAuthException {
         }
         response = getHttpStatusCode();
         if (response != null) {
-            return HttpMessage.STATUS_CODE + " " + response;
+            return HttpResponseMessage.STATUS_CODE + " " + response;
         }
         return null;
     }
@@ -89,7 +90,7 @@ public class OAuthProblemException extends OAuthException {
     }
 
     public int getHttpStatusCode() {
-        Object code = getParameters().get(HttpMessage.STATUS_CODE);
+        Object code = getParameters().get(HttpResponseMessage.STATUS_CODE);
         if (code == null) {
             return 200;
         } else if (code instanceof Number) { // the usual case

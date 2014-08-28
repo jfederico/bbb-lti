@@ -16,8 +16,6 @@
 
 package net.oauth.server;
 
-import net.oauth.http.HttpMessage;
-
 import java.io.IOException;
 import java.util.Map;
 import javax.servlet.ServletException;
@@ -26,6 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 import net.oauth.OAuth;
 import net.oauth.OAuthMessage;
 import net.oauth.OAuthProblemException;
+import net.oauth.http.HttpResponseMessage;
 
 /**
  * Utility methods for servlets that implement OAuth.
@@ -80,7 +79,7 @@ public class OAuthServlet {
             ServletException {
         if (e instanceof OAuthProblemException) {
             OAuthProblemException problem = (OAuthProblemException) e;
-            Object httpCode = problem.getParameters().get(HttpMessage.STATUS_CODE);
+            Object httpCode = problem.getParameters().get(HttpResponseMessage.STATUS_CODE);
             if (httpCode == null) {
                 httpCode = PROBLEM_TO_HTTP_CODE.get(problem.getProblem());
             }

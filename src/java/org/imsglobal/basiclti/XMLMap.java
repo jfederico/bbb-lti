@@ -1,6 +1,6 @@
 /**********************************************************************************
- * $URL: https://source.sakaiproject.org/svn/basiclti/tags/basiclti-2.1.1/basiclti-util/src/java/org/imsglobal/basiclti/XMLMap.java $
- * $Id: XMLMap.java 128165 2013-08-04 00:14:49Z csev@umich.edu $
+ * $URL: https://source.sakaiproject.org/svn/basiclti/trunk/basiclti-util/src/java/org/imsglobal/basiclti/XMLMap.java $
+ * $Id: XMLMap.java 109505 2012-06-25 02:38:53Z csev@umich.edu $
  **********************************************************************************
  *
  * Copyright (c) 2009 IMS GLobal Learning Consortium, Inc.
@@ -263,10 +263,7 @@ public class XMLMap {
 	public static Document documentFromString(String input)
 	{
 		try{
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance(); 
-			factory.setFeature("http://xml.org/sax/features/external-general-entities", false); 
-			factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false); 
-			DocumentBuilder parser = factory.newDocumentBuilder();
+			DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 			Document document = parser.parse(new ByteArrayInputStream(input.getBytes()));
 			return document;
 		} catch (Exception e) {
@@ -492,10 +489,7 @@ public class XMLMap {
 		Document document = null;
 
 		try{
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance(); 
-			factory.setFeature("http://xml.org/sax/features/external-general-entities", false); 
-			factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false); 
-			DocumentBuilder parser = factory.newDocumentBuilder();
+			DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 			document = parser.newDocument();
 		} catch (Exception e) {
 			return null;
@@ -558,7 +552,7 @@ public class XMLMap {
 					Object listObj = listIter.next();
 					doDebug(d,"Processing List element@"+newPos+" "+listObj.getClass().getName());
 					if ( listObj instanceof String ) {
-						storeInDom(document, parentNode, key, (String) listObj, newPos, d);
+						storeInDom(document, parentNode, key, (String) obj, newPos, d);
 						newPos++;
 					} if ( listObj instanceof Map ) {
 						Map subMap = (Map) listObj;
@@ -759,7 +753,7 @@ public class XMLMap {
 			tf.transform (new javax.xml.transform.dom.DOMSource (node),
 					new javax.xml.transform.stream.StreamResult (baStream));
 			return baStream.toString();
-		} catch (javax.xml.transform.TransformerException e)  {
+		} catch (Exception e)  {
 			return null;
 		}
 	}

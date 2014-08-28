@@ -16,7 +16,7 @@
  ****************************************************************************
  * 
  * @author:     zhang
- * @version:    $Revision: 73016 $
+ * @version:    $Revision: 2 $
  * @created:    Apr 24, 2009
  *
  * Description: A class to decode PEM files
