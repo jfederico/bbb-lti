@@ -54,6 +54,7 @@ class ToolController {
         ltiService.logParameters(params)
 
         if( request.post ){
+            def endPoint = (request.isSecure()?"https":"http") + "://" + ltiService.endPoint + "/" + grailsApplication.metadata['app.name'] + "/" + params.get("controller") + (params.get("format") != null? "." + params.get("format"): "")
             Map<String, String> result = new HashMap<String, String>()
             ArrayList<String> missingParams = new ArrayList<String>()
             log.debug "Checking for required parameters"
@@ -63,7 +64,7 @@ class ToolController {
                 def consumer = ltiService.getConsumer(params.get(Parameter.CONSUMER_ID))
                 if (consumer != null) {
                     log.debug "Found consumer with key " + consumer.get("key") //+ " and sharedSecret " + consumer.get("secret")
-                    if (checkValidSignature(params.get(REQUEST_METHOD), ltiService.endPoint, consumer.get("secret"), sanitizedParams, params.get(Parameter.OAUTH_SIGNATURE))) {
+                    if (checkValidSignature(params.get(REQUEST_METHOD), endPoint, consumer.get("secret"), sanitizedParams, params.get(Parameter.OAUTH_SIGNATURE))) {
                         log.debug  "The message has a valid signature."
 
                         if( !"extended".equals(ltiService.mode) ) {
