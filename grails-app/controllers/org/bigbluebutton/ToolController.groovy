@@ -1,3 +1,4 @@
+package org.bigbluebutton
 /* 
     BigBlueButton open source conferencing system - http://www.bigbluebutton.org/
 
@@ -29,27 +30,29 @@ import net.oauth.signature.OAuthSignatureMethod
 import net.oauth.signature.HMAC_SHA1
 import org.bigbluebutton.lti.Parameter
 
-import BigbluebuttonService
-import LtiService
-
 class ToolController {
     private static final String CONTROLLER_NAME = 'ToolController'
     private static final String RESP_CODE_SUCCESS = 'SUCCESS'
     private static final String RESP_CODE_FAILED = 'FAILED'
     private static final String REQUEST_METHOD = "request_method";
-    
+
     LtiService ltiService
     BigbluebuttonService bigbluebuttonService
-    
+
+    def test = {
+        log.debug CONTROLLER_NAME + "#test"
+        render(text: "<xml></xml>", contentType: "text/xml", encoding: "UTF-8")
+    }
+
     def index = {
-        if( ltiService.consumerMap == null) ltiService.initConsumerMap()
         log.debug CONTROLLER_NAME + "#index"
+        if( ltiService.consumerMap == null) ltiService.initConsumerMap()
 
         setLocalization(params)
-        
+
         params.put(REQUEST_METHOD, request.getMethod().toUpperCase())
         ltiService.logParameters(params)
-        
+
         if( request.post ){
             Map<String, String> result = new HashMap<String, String>()
             ArrayList<String> missingParams = new ArrayList<String>()
@@ -62,7 +65,7 @@ class ToolController {
                     log.debug "Found consumer with key " + consumer.get("key") //+ " and sharedSecret " + consumer.get("secret")
                     if (checkValidSignature(params.get(REQUEST_METHOD), ltiService.endPoint, consumer.get("secret"), sanitizedParams, params.get(Parameter.OAUTH_SIGNATURE))) {
                         log.debug  "The message has a valid signature."
-                        
+
                         if( !"extended".equals(ltiService.mode) ) {
                             log.debug  "LTI service running in simple mode."
                             result = doJoinMeeting(params)
@@ -73,18 +76,16 @@ class ToolController {
                                 result = doJoinMeeting(params)
                             }
                         }
-                        
                     } else {
                         log.debug  "The message has NOT a valid signature."
                         result.put("resultMessageKey", "InvalidSignature")
                         result.put("resultMessage", "Invalid signature (" + params.get(Parameter.OAUTH_SIGNATURE) + ").")
                     }
-                    
                 } else {
                     result.put("resultMessageKey", "ConsumerNotFound")
                     result.put("resultMessage", "Consumer with id = " + params.get(Parameter.CONSUMER_ID) + " was not found.")
                 }
-    
+
             } else {
                 String missingStr = ""
                 for(String str:missingParams) {
@@ -111,13 +112,10 @@ class ToolController {
                     /// Add duration
                     recording.put("duration", duration )
                 }
-
                 render(view: "index", model: ['params': params, 'recordingList': recordings, 'ismoderator': bigbluebuttonService.isModerator(params)])
             }
-
         } else {
             render(text: getCartridgeXML(), contentType: "text/xml", encoding: "UTF-8")
-
         }
     }
 
@@ -142,7 +140,6 @@ class ToolController {
             log.debug "Error [resultMessageKey:'" + result.get("resultMessageKey") + "', resultMessage:'" + result.get("resultMessage") + "']"
             render(view: "error", model: ['resultMessageKey': result.get("resultMessageKey"), 'resultMessage': result.get("resultMessage")])
         }
-
     }
 
     def publish = {
@@ -182,11 +179,9 @@ class ToolController {
                 /// Add duration
                 recording.put("duration", duration )
             }
-            
+
             render(view: "index", model: ['params': sessionParams, 'recordingList': recordings, 'ismoderator': bigbluebuttonService.isModerator(sessionParams)])
-
         }
-
     }
 
     def delete = {
@@ -232,24 +227,19 @@ class ToolController {
     }
 
     private void setLocalization(params){
-
         String locale = params.get(Parameter.LAUNCH_LOCALE)
         locale = (locale == null || locale.equals("")?"en":locale)
-        log.debug "Locale code =" + locale
         String[] localeCodes = locale.split("_")
         //Localize the default welcome message
         if( localeCodes.length > 1 )
             session['org.springframework.web.servlet.i18n.SessionLocaleResolver.LOCALE'] = new Locale(localeCodes[0], localeCodes[1])
         else
             session['org.springframework.web.servlet.i18n.SessionLocaleResolver.LOCALE'] = new Locale(localeCodes[0])
-                    
-        log.debug "Locale has been set to " + locale
-
     }
 
     private Object doJoinMeeting(params) {
         Map<String, String> result = new HashMap<String, String>()
-                    
+
         setLocalization(params)
         String welcome = message(code: "bigbluebutton.welcome.header", args: ["\"{0}\"", "\"{1}\""]) + "<br>"
         log.debug "Localized default welcome message: [" + welcome + "]"
@@ -275,24 +265,24 @@ class ToolController {
 
         String destinationURL = bigbluebuttonService.getJoinURL(params, welcome, ltiService.mode)
         log.debug "redirecting to " + destinationURL
-                    
+
         if( destinationURL != null ) {
             redirect(url:destinationURL)
         } else {
             result.put("resultMessageKey", "BigBlueButtonServerError")
             result.put("resultMessage", "The join could not be completed")
         }
-        
+
         return result
     }
-        
+
     /**
      * Assemble all parameters passed that is required to sign the request.
      * @param the HTTP request parameters
      * @return the key:val pairs needed for Basic LTI
      */
     private Properties sanitizePrametersForBaseString(Object params) {
-        
+
         Properties reqProp = new Properties();
         for (String key : ((Map<String, String>)params).keySet()) {
             if (key == "action" || key == "controller") {
@@ -360,7 +350,7 @@ class ToolController {
         log.debug("Calculated: " + calculatedSignature + " Received: " + signature)
         return calculatedSignature.equals(signature)
     }
-    
+
     private String getCartridgeXML(){
         def cartridge = '' +
         '<?xml version="1.0" encoding="UTF-8"?>' +
@@ -386,10 +376,7 @@ class ToolController {
         '    <cartridge_bundle identifierref="BLTI001_Bundle"/>' +
         '    <cartridge_icon identifierref="BLTI001_Icon"/>' +
         '</cartridge_basiclti_link>'
-        
+
         return cartridge
-        
     }
-
-
 }

@@ -1,3 +1,4 @@
+package org.bigbluebutton
 /* 
     BigBlueButton open source conferencing system - http://www.bigbluebutton.org/
 
