@@ -60,8 +60,6 @@ class ToolController {
 
             if (hasAllRequiredParams(params, missingParams)) {
                 def sanitizedParams = sanitizePrametersForBaseString(params)
-                log.debug "Parameters after being sanitized..."
-                ltiService.logParameters(params)
                 def consumer = ltiService.getConsumer(params.get(Parameter.CONSUMER_ID))
                 if (consumer != null) {
                     log.debug "Found consumer with key " + consumer.get("key") //+ " and sharedSecret " + consumer.get("secret")
@@ -228,7 +226,7 @@ class ToolController {
         }
     }
 
-    private void setLocalization(params){
+    private void setLocalization(Map<String, String> params){
         String locale = params.get(Parameter.LAUNCH_LOCALE)
         locale = (locale == null || locale.equals("")?"en":locale)
         String[] localeCodes = locale.split("_")
@@ -239,7 +237,7 @@ class ToolController {
             session['org.springframework.web.servlet.i18n.SessionLocaleResolver.LOCALE'] = new Locale(localeCodes[0])
     }
 
-    private Object doJoinMeeting(params) {
+    private Object doJoinMeeting(Map<String, String> params) {
         Map<String, String> result = new HashMap<String, String>()
 
         setLocalization(params)
@@ -283,7 +281,7 @@ class ToolController {
      * @param the HTTP request parameters
      * @return the key:val pairs needed for Basic LTI
      */
-    private Properties sanitizePrametersForBaseString(params) {
+    private Properties sanitizePrametersForBaseString(Map<String, String> params) {
         Properties reqProp = new Properties();
         for (String key : params.keySet()) {
             if (key == "action" || key == "controller" || key == "format") {
