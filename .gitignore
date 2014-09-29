@@ -1,7 +1,8 @@
 .classpath
-.project
 .settings*
+.project
 target*
 bin*
+target*
 target-eclipse*
 eclipse-target*
