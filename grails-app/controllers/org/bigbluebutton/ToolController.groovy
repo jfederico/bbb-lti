@@ -25,10 +25,14 @@ import java.util.Properties
 
 import org.apache.commons.codec.digest.DigestUtils
 
+import net.oauth.OAuth
 import net.oauth.OAuthMessage
 import net.oauth.signature.OAuthSignatureMethod
 import net.oauth.signature.HMAC_SHA1
 import org.bigbluebutton.lti.Parameter
+import org.imsglobal.basiclti.BasicLTIConstants
+import org.json.JSONArray
+import org.json.JSONObject
 
 class ToolController {
     private static final String CONTROLLER_NAME = 'ToolController'
@@ -43,6 +47,73 @@ class ToolController {
         log.debug CONTROLLER_NAME + "#test"
         render(text: "<xml></xml>", contentType: "text/xml", encoding: "UTF-8")
     }
+
+	def register = {
+		log.debug CONTROLLER_NAME + "#register"
+        params.remove("controller")
+        params.remove("action")
+        params.remove("format")
+        params.put(REQUEST_METHOD, request.getMethod().toUpperCase())
+		ltiService.logParameters(params)
+        
+		//Validates if all the required params are included
+		def validation
+        try {
+            validation = new JSONObject(validateRequiredParams(params))
+        } catch ( Exception e ) {
+            validation = new JSONObject('{"code": "failed", "message_key": "InvalidMap", "message": "${e.message}"}')
+            log.debug e.message
+        }
+        log.debug validation
+        log.debug validation.getString("code")
+        
+		if( validation.getString("code") == "success" ){
+            def tcProfileURL = params.get(BasicLTIConstants.TC_PROFILE_URL)
+            log.debug tcProfileURL
+            ltiService.getToolConsumerProfile(tcProfileURL)
+
+            def returnURL = params.get(BasicLTIConstants.LAUNCH_PRESENTATION_RETURN_URL)
+            log.debug returnURL
+            redirect(url: returnURL)
+		} else {
+			if( params.containsKey(BasicLTIConstants.LAUNCH_PRESENTATION_RETURN_URL) ) {
+				def returnURL = params.get(BasicLTIConstants.LAUNCH_PRESENTATION_RETURN_URL) + "&lti_errormsg=" + URLEncoder.encode(validation.get("message"), 'UTF-8') + "&lti_errorlog" + URLEncoder.encode(validation.get("message_key"), 'UTF-8')
+                log.debug returnURL
+				redirect(url: returnURL)
+			} else {
+				render(text: validation, contentType: "text/plain", encoding: "UTF-8")
+			}
+		}
+	}
+	
+	private Map<String, String> validateRequiredParams(params){
+		def code = "success"
+		def message_key = ""
+		def message = ""
+
+		ArrayList<String> missingParams = new ArrayList<String>()
+		for( String param: BasicLTIConstants.ToolProxyRegistrationRequestRequired ){
+			if( !params.containsKey(param) ) {
+            	missingParams.add(param)
+				if( code == "success" )
+                    code = "failed"
+                if( message_key == "" )
+                    message_key = "MissingRequiredParameter"
+                if( message == "" )
+                    message = "Missing parameters [" + param
+                else
+                    message += ", " + param 
+			}
+		}
+        if( message != "" ) message += "]"
+        
+		Map<String, String> validation = new LinkedHashMap<String, String>()
+		validation.put("code", code)
+		validation.put("message_key", message_key) 
+		validation.put("message", message)
+
+		return validation
+	}
 
     def index = {
         log.debug CONTROLLER_NAME + "#index"
@@ -60,10 +131,10 @@ class ToolController {
 
             if (hasAllRequiredParams(params, missingParams)) {
                 def sanitizedParams = sanitizePrametersForBaseString(params)
-                def consumer = ltiService.getConsumer(params.get(Parameter.CONSUMER_ID))
+                def consumer = ltiService.getConsumer(params.get(OAuth.OAUTH_CONSUMER_KEY))
                 if (consumer != null) {
                     log.debug "Found consumer with key " + consumer.get("key") //+ " and sharedSecret " + consumer.get("secret")
-                    if (checkValidSignature(params.get(REQUEST_METHOD), endPoint, consumer.get("secret"), sanitizedParams, params.get(Parameter.OAUTH_SIGNATURE))) {
+                    if (checkValidSignature(params.get(REQUEST_METHOD), endPoint, consumer.get("secret"), sanitizedParams, params.get(OAuth.OAUTH_SIGNATURE))) {
                         log.debug  "The message has a valid signature."
 
                         def mode = params.containsKey(Parameter.CUSTOM_MODE)? params.get(Parameter.CUSTOM_MODE): ltiService.mode
@@ -80,11 +151,11 @@ class ToolController {
                     } else {
                         log.debug  "The message has NOT a valid signature."
                         result.put("resultMessageKey", "InvalidSignature")
-                        result.put("resultMessage", "Invalid signature (" + params.get(Parameter.OAUTH_SIGNATURE) + ").")
+                        result.put("resultMessage", "Invalid signature (" + params.get(OAuth.OAUTH_SIGNATURE) + ").")
                     }
                 } else {
                     result.put("resultMessageKey", "ConsumerNotFound")
-                    result.put("resultMessage", "Consumer with id = " + params.get(Parameter.CONSUMER_ID) + " was not found.")
+                    result.put("resultMessage", "Consumer with id = " + params.get(OAuth.OAUTH_CONSUMER_KEY) + " was not found.")
                 }
 
             } else {
@@ -144,49 +215,15 @@ class ToolController {
     }
 
     def publish = {
-        log.debug CONTROLLER_NAME + "#publish"
-        Map<String, String> result
-
-        def sessionParams = session["params"]
-
-        if( sessionParams == null ) {
-            result = new HashMap<String, String>()
-            result.put("resultMessageKey", "InvalidSession")
-            result.put("resultMessage", "Invalid session. User can not execute this action.")
-        } else if ( !bigbluebuttonService.isModerator(sessionParams) ) {
-            result = new HashMap<String, String>()
-            result.put("resultMessageKey", "NotAllowed")
-            result.put("resultMessage", "User not allowed to execute this action.")
-        } else {
-            log.debug "params: " + params
-            log.debug "sessionParams: " + sessionParams
-
-            //Execute the publish command
-            result = bigbluebuttonService.doPublishRecordings(params)
-        }
-
-        if( result.containsKey("resultMessageKey")) {
-            log.debug "Error [resultMessageKey:'" + result.get("resultMessageKey") + "', resultMessage:'" + result.get("resultMessage") + "']"
-            render(view: "error", model: ['resultMessageKey': result.get("resultMessageKey"), 'resultMessage': result.get("resultMessage")])
-        } else {
-            List<Object> recordings = bigbluebuttonService.getRecordings(sessionParams)
-            for(Map<String, Object> recording: recordings){
-                /// Calculate duration
-                long endTime = Long.parseLong((String)recording.get("endTime"))
-                endTime -= (endTime % 1000)
-                long startTime = Long.parseLong((String)recording.get("startTime"))
-                startTime -= (startTime % 1000)
-                int duration = (endTime - startTime) / 60000
-                /// Add duration
-                recording.put("duration", duration )
-            }
-
-            render(view: "index", model: ['params': sessionParams, 'recordingList': recordings, 'ismoderator': bigbluebuttonService.isModerator(sessionParams)])
-        }
+        executeAction( params.get("action"))
     }
 
     def delete = {
-        log.debug CONTROLLER_NAME + "#delete"
+        executeAction( params.get("action"))
+    }
+    
+    private void executeAction(action) {
+        log.debug CONTROLLER_NAME + "#" + action
         Map<String, String> result
 
         def sessionParams = session["params"]
@@ -203,8 +240,11 @@ class ToolController {
             log.debug "params: " + params
             log.debug "sessionParams: " + sessionParams
 
-            //Execute the delete command
-            result = bigbluebuttonService.doDeleteRecordings(params)
+            //Execute the [delete|publish] command
+            if( action == "delete")
+                result = bigbluebuttonService.doDeleteRecordings(params)
+            else
+                result = bigbluebuttonService.doPublishRecordings(params)
         }
 
         if( result.containsKey("resultMessageKey")) {
@@ -228,7 +268,7 @@ class ToolController {
     }
 
     private void setLocalization(Map<String, String> params){
-        String locale = params.get(Parameter.LAUNCH_LOCALE)
+        String locale = params.get(BasicLTIConstants.LAUNCH_PRESENTATION_LOCALE)
         locale = (locale == null || locale.equals("")?"en":locale)
         String[] localeCodes = locale.split("_")
         //Localize the default welcome message
@@ -311,18 +351,18 @@ class ToolController {
         log.debug "Checking for required parameters"
 
         boolean hasAllParams = true
-        if ( !params.containsKey(Parameter.CONSUMER_ID) ) {
-            missingParams.add(Parameter.CONSUMER_ID);
+        if ( !params.containsKey(OAuth.OAUTH_CONSUMER_KEY) ) {
+            missingParams.add(OAuth.OAUTH_CONSUMER_KEY);
             hasAllParams = false;
         }
 
-        if ( !params.containsKey(Parameter.OAUTH_SIGNATURE)) {
-            missingParams.add(Parameter.OAUTH_SIGNATURE);
+        if ( !params.containsKey(OAuth.OAUTH_SIGNATURE)) {
+            missingParams.add(OAuth.OAUTH_SIGNATURE);
             hasAllParams = false;
         }
 
-        if ( !params.containsKey(Parameter.RESOURCE_LINK_ID) ) {
-            missingParams.add(Parameter.RESOURCE_LINK_ID);
+        if ( !params.containsKey(BasicLTIConstants.RESOURCE_LINK_ID) ) {
+            missingParams.add(BasicLTIConstants.RESOURCE_LINK_ID);
             hasAllParams = false;
         }
 
@@ -397,5 +437,51 @@ class ToolController {
                 '</cartridge_basiclti_link>'
 
         return cartridge
+    }
+    
+    private JSONObject getToolProfile() {
+        def lti_endpoint = ltiService.retrieveBasicLtiEndpoint() + '/' + grailsApplication.metadata['app.name']
+        def tool_proxy_url = 'http://' + lti_endpoint + '/proxy'
+        def secure_tool_proxy_url = 'https://' + lti_endpoint + '/proxy'
+        def isSSLEnabled = ltiService.isSSLEnabled('https://' + lti_endpoint + '/tool/test')
+
+        Map<String, Object> profile
+        profile = new LinkedHashMap<String, Object>()
+        profile.put("@context", "http://purl.imsglobal.org/ctx/lti/v2/ToolProxy")
+        profile.put("@type", "ToolProxy")
+        profile.put("@id", (isSSLEnabled? secure_tool_proxy_url + '': tool_proxy_url))
+        
+        JSONObject jsonProfile = new JSONObject(profile) 
+        return jsonProfile
+
+        /*
+        List<Object> aliases = new ArrayList<Object>()
+        Map<String, String> alias1 = new HashMap<String,String>()
+        alias1.put("alias", "t1")
+        aliases.add(alias1)
+        Map<String, String> alias2 = new HashMap<String,String>()
+        alias2.put("alias", "t2")
+        aliases.add(alias2)
+        tTest.put("aliases", aliases )
+        Map<String, Object> vendor = new LinkedHashMap<String, Object>()
+        vendor.put("code", "hg_test")
+        vendor.put("name", "HG Test")
+        vendor.put("description", "Default LTI Gateway for processing test requests")
+        vendor.put("url", "http://www.123it.ca/hg")
+        vendor.put("contact", "admin@123it.ca")
+        tTest.put("vendor", vendor)
+        Map<String, Object> lti = new LinkedHashMap<String, Object>()
+        lti.put("key", "test")
+        lti.put("secret", "testtest")
+        tTest.put("lti", lti)
+        Map<String, Object> engine = new LinkedHashMap<String, Object>()
+        engine.put("key", "test")
+        engine.put("secret", "test")
+        engine.put("endpoint", "test")
+        engine.put("profiles", new ArrayList<Object>())
+        tTest.put("engine", engine)
+        return tTest
+        */
+
     }
 }

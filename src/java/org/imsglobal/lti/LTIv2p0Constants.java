@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 IMS GLobal Learning Consortium
+ * Copyright (c) 2014 IMS GLobal Learning Consortium
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,9 @@
  * implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-package org.imsglobal.basiclti;
+package org.imsglobal.lti;
 
-public class BasicLTIConstants {
+public class LTIv2p0Constants {
 	/**
 	 * context_id=8213060-006f-27b2066ac545
 	 * <p>
@@ -23,18 +23,6 @@ public class BasicLTIConstants {
 	 * contains the link being launched.
 	 */
 	public static final String CONTEXT_ID = "context_id";
-	/**
-	 * context_label=SI182
-	 * <p>
-	 * A label for the context - intended to fit in a column.
-	 */
-	public static final String CONTEXT_LABEL = "context_label";
-	/**
-	 * context_title=Design of Personal Environments
-	 * <p>
-	 * A title of the context - it should be about the length of a line.
-	 */
-	public static final String CONTEXT_TITLE = "context_title";
 
 	/**
 	 * context_type=CourseSection
@@ -47,9 +35,9 @@ public class BasicLTIConstants {
 	 * namespace, a fully-qualified URN should be used.
 	 */
 	public static final String CONTEXT_TYPE = "context_type";
+	public static final String CONTEXT_TYPE_COURSE_TEMPLATE = "CourseTemplate";
 	public static final String CONTEXT_TYPE_COURSE_OFFERING = "CourseOffering";
 	public static final String CONTEXT_TYPE_COURSE_SECTION = "CourseSection";
-	public static final String CONTEXT_TYPE_COURSE_TEMPLATE = "CourseTemplate";
 	public static final String CONTEXT_TYPE_GROUP = "GROUP";
 
 	/**
@@ -147,60 +135,7 @@ public class BasicLTIConstants {
 	 * to the tool-specific CSS. 
 	 */
 	public static final String LAUNCH_PRESENTATION_CSS_URL = "launch_presentation_css_url";
-	/**
-	 * lis_person_contact_email_primary=user@school.edu
-	 * <p>
-	 * These fields contain information about the user account that is performing
-	 * this launch. The names of these data items are taken from LIS. The precise
-	 * meaning of the content in these fields is defined by LIS.
-	 */
-	public static final String LIS_PERSON_CONTACT_EMAIL_PRIMARY = "lis_person_contact_email_primary";
-	/**
-	 * lis_person_name_family=Public
-	 * <p>
-	 * These fields contain information about the user account that is performing
-	 * this launch. The names of these data items are taken from LIS. The precise
-	 * meaning of the content in these fields is defined by LIS.
-	 */
-	public static final String LIS_PERSON_NAME_FAMILY = "lis_person_name_family";
-	/**
-	 * lis_person_name_full=Jane Q. Public
-	 * <p>
-	 * These fields contain information about the user account that is performing
-	 * this launch. The names of these data items are taken from LIS. The precise
-	 * meaning of the content in these fields is defined by LIS.
-	 */
-	public static final String LIS_PERSON_NAME_FULL = "lis_person_name_full";
-	/**
-	 * lis_person_name_given=Jane
-	 * <p>
-	 * These fields contain information about the user account that is performing
-	 * this launch. The names of these data items are taken from LIS. The precise
-	 * meaning of the content in these fields is defined by LIS.
-	 */
-	public static final String LIS_PERSON_NAME_GIVEN = "lis_person_name_given";
 
-	/**
-	 * lis_person_sourcedid=school.edu:user
-	 * <p>
-	 * This field contains the LIS identifier for the user account that is 
-	 * performing this launch.    The example syntax of "school:user" 
-	 * is not the required format – lis_person_sourcedid is simply a
-	 * globally unique identifier (i.e., a normalized string). This field 
-	 * is optional and its content and meaning are defined by LIS.    
-	 */
-	public static final String LIS_PERSON_SOURCEDID = "lis_person_sourcedid";
-
-	/**
-	 * lis_course_offering_sourcedid=school.edu:SI182-F08 <br/>
-	 * lis_course_section_sourcedid=school.edu:SI182-001-F08
-	 * <p>
-	 * These fields contain LIS course identifiers associated with the 
-	 * context of this launch.  These fields are optional and their 
-	 * content and meaning are defined by LIS. 
-	 */
-	public static final String LIS_COURSE_OFFERING_SOURCEDID = "lis_course_offering_sourcedid";
-	public static final String LIS_COURSE_SECTION_SOURCEDID = "lis_course_section_sourcedid";
 
 	/**
      * lis_outcome_service_url=http://lmsng.school.edu/service/ltiout/
@@ -232,6 +167,7 @@ public class BasicLTIConstants {
 	 * parameter is required.
 	 */
 	public static final String LTI_MESSAGE_TYPE = "lti_message_type";
+	
 	/**
 	 * lti_version=LTI-1p0
 	 * <p>
@@ -241,37 +177,6 @@ public class BasicLTIConstants {
 	public static final String LTI_VERSION = "lti_version";
 	// launch settings per spec - computed not stored
 
-   /** 
-    * tool_consumer_info_product_family_code=desire2learn
-    * <p>
-    * In order to better assist tools in using extensions and also making their user 
-    * interface fit into the TC's user interface that they are being called from, 
-    * each TC is encouraged to include the this parameter.   Possible example values 
-    * for this field might be:
-    * 
-    * 	learn 
-    * 	desire2learn
-    * 	sakai
-    * 	eracer
-    * 	olat
-    * 	webct
-    * This parameter is optional but recommended.
-    */
-	public static final String TOOL_CONSUMER_INFO_PRODUCT_FAMILY_CODE = "tool_consumer_info_product_family_code";
-
-   /** 
-    * tool_consumer_info_version=9.2.4
-    * <p>
-    * This field should have a major release number followed by a period.  The format of the minor release is flexible.  Possible vaues for this field might be:
-    * 
-    * 	9.1.7081     
-    * 	2.8-01
-    * 	7.1
-    * 	8
-    * The Tool Provider should be flexible when parsing this field.  This parameter is optional but recommended.
-
-     */
-	public static final String TOOL_CONSUMER_INFO_VERSION = "tool_consumer_info_version";
 
 	/**
 	 * resource_link_id=88391-e1919-bb3456
@@ -284,23 +189,6 @@ public class BasicLTIConstants {
 	 * parameter is required.
 	 */
 	public static final String RESOURCE_LINK_ID = "resource_link_id";
-
-	/**
-	 * resource_link_title=My Weekly Wiki
-	 * <p>
-	 * A title for the resource. This is the clickable text that appears 
-	 * in the link. This parameter is recommended.
-	 */
-	public static final String RESOURCE_LINK_TITLE = "resource_link_title";
-
-	/**
-	 * resource_link_description=…
-	 * <p>
-	 * A plain text description of the link’s destination, suitable for 
-	 * display alongside the link. Typically no more than several lines 
-	 * long. This parameter is optional.
-	 */
-	public static final String RESOURCE_LINK_DESCRIPTION = "resource_link_description";
 
 	/**
 	 * roles=Instructor,Student
@@ -316,18 +204,7 @@ public class BasicLTIConstants {
 	 * parameter is recommended.
 	 */
 	public static final String ROLES = "roles";
-	/**
-	 * tool_consumer_instance_contact_email=System.Admin@school.edu
-	 * <p>
-	 * An email contact for the TC instance.
-	 */
-	public static final String TOOL_CONSUMER_INSTANCE_CONTACT_EMAIL = "tool_consumer_instance_contact_email";
-	/**
-	 * tool_consumer_instance_description=University of School (LMSng)
-	 * <p>
-	 * This is a user visible field - it should be about the length of a line.
-	 */
-	public static final String TOOL_CONSUMER_INSTANCE_DESCRIPTION = "tool_consumer_instance_description";
+	
 	// global settings
 	/**
 	 * tool_consumer_instance_guid=lmsng.school.edu
@@ -341,16 +218,9 @@ public class BasicLTIConstants {
 	 */
 	public static final String TOOL_CONSUMER_INSTANCE_GUID = "tool_consumer_instance_guid";
 	/**
-	 * tool_consumer_instance_name=SchoolU
-	 * <p>
-	 * This is a user visible field - it should be about the length of a column.
-	 */
-	public static final String TOOL_CONSUMER_INSTANCE_NAME = "tool_consumer_instance_name";
-	/**
 	 * Missing from implementation guide. Needs documentation. Not required, but
 	 * "tasty".
 	 */
-	public static final String TOOL_CONSUMER_INSTANCE_URL = "tool_consumer_instance_url";
 
 	/**
 	 * user_id=0ae836b9-7fc9-4060-006f-27b2066ac545
@@ -361,7 +231,6 @@ public class BasicLTIConstants {
 	 * key. This parameter is recommended.
 	 */
 	public static final String USER_ID = "user_id";
-
     /**
      * user_image=http://my.sakai.org/direct/profile/0ae836b9-7fc9-4060-006f-27b2066ac545/image
      * <p>
@@ -386,23 +255,14 @@ public class BasicLTIConstants {
 	 * Utility array useful for validating property names when building launch
 	 * data.
 	 */
-	public static final String[] validPropertyNames = { CONTEXT_ID,
-		CONTEXT_LABEL, CONTEXT_TITLE, CONTEXT_TYPE,
+	public static final String[] validPropertyNames = { 
+		CONTEXT_ID, CONTEXT_TYPE,
 		LAUNCH_PRESENTATION_DOCUMENT_TARGET, LAUNCH_PRESENTATION_HEIGHT,
 		LAUNCH_PRESENTATION_LOCALE, LAUNCH_PRESENTATION_RETURN_URL,
-		LAUNCH_PRESENTATION_WIDTH, LIS_PERSON_CONTACT_EMAIL_PRIMARY,
-		LAUNCH_PRESENTATION_CSS_URL, 
-		TOOL_CONSUMER_INFO_PRODUCT_FAMILY_CODE,
-		TOOL_CONSUMER_INFO_VERSION,
-		LIS_PERSON_NAME_FAMILY, LIS_PERSON_NAME_FULL, LIS_PERSON_NAME_GIVEN,
-		LIS_PERSON_SOURCEDID, LIS_COURSE_OFFERING_SOURCEDID, 
-		LIS_COURSE_SECTION_SOURCEDID, 
+		LAUNCH_PRESENTATION_WIDTH, LAUNCH_PRESENTATION_CSS_URL, 
         LIS_OUTCOME_SERVICE_URL, LIS_RESULT_SOURCEDID,
 		LTI_MESSAGE_TYPE, LTI_VERSION, RESOURCE_LINK_ID, 
-		RESOURCE_LINK_TITLE, RESOURCE_LINK_DESCRIPTION, ROLES,
-		TOOL_CONSUMER_INSTANCE_CONTACT_EMAIL, TOOL_CONSUMER_INSTANCE_DESCRIPTION,
-		TOOL_CONSUMER_INSTANCE_GUID, TOOL_CONSUMER_INSTANCE_NAME,
-		TOOL_CONSUMER_INSTANCE_URL, USER_ID, USER_IMAGE };
+		ROLES, TOOL_CONSUMER_INSTANCE_GUID, USER_ID };
 	
 	/**
 	 * The default site type to use if a site needs to be created. Can be overriden in sakai.properties or as part of the launch.
@@ -411,27 +271,26 @@ public class BasicLTIConstants {
 	 */
 	public static final String NEW_SITE_TYPE = "lti";
 
-
-	/*****************************************
-	 *                                       *
-	 * Specific parameters added for LTI 2.0 *
-	 *                                       *
-	 *****************************************/
+	/** 
+	 * 
+	 * Specific parameters added for LTI 2.0
+	 *  
+	 **/
 
 	public static final String LTI_MESSAGE_TYPE_BASIC_LTI_LAUNCH_REQUEST = "basic-lti-launch-request";
-
+	
 	public static final String LTI_MESSAGE_TYPE_TOOL_PROXY_REGISTRATION_REQUEST = "ToolProxyRegistrationRequest";
-
-	public static final String ROLE_SCOPE_MENTOR = "role_scope_mentor";
+	
+	public static final String 	ROLE_SCOPE_MENTOR = "role_scope_mentor";
 
 	public static final String REG_KEY = "reg_key";
-
+	
 	public static final String REG_PASSWORD = "reg_password";
 
 	public static final String TC_PROFILE_URL = "tc_profile_url";
 
 	public static final String[] BasicLTILaunchRequestParametersRequired = { 
-		LTI_MESSAGE_TYPE, LTI_VERSION, RESOURCE_LINK_ID
+		LTI_MESSAGE_TYPE, LTI_VERSION, RESOURCE_LINK_ID 
 		};
 
 	public static final String[] BasicLTILaunchRequestParametersRecommended = { 

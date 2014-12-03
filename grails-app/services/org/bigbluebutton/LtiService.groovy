@@ -17,11 +17,17 @@ package org.bigbluebutton
     with BigBlueButton; if not, see <http://www.gnu.org/licenses/>.
 */
 
-import java.util.Map;
+import java.util.List
+import java.util.Map
 
 import javax.crypto.spec.SecretKeySpec
 import javax.crypto.Mac
+
 import org.apache.commons.codec.binary.Base64
+import org.json.JSONArray
+import org.json.JSONException
+import org.json.JSONObject
+import org.w3c.dom.Document
 
 class LtiService {
 
@@ -131,6 +137,117 @@ class LtiService {
 		}
 
 		return ssl_enabled
+    }
+
+    public getToolConsumerProfile(String query) {
+        JSONObject toolConsumerProfile = ltiProxyRequest(query)
+        log.debug toolConsumerProfile
+    }
+    
+    /** Make an API call */
+    private JSONObject ltiProxyRequest(String query) {
+        StringBuilder urlStr = new StringBuilder(query);
+
+        try {
+            // open connection
+            //log.debug("doAPICall.call: " + query );
+
+            URL url = new URL(urlStr.toString());
+            HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
+            httpConnection.setUseCaches(false);
+            httpConnection.setDoOutput(true);
+            httpConnection.setRequestMethod("GET");
+            httpConnection.connect();
+
+            int responseCode = httpConnection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                // read response
+                InputStreamReader isr = null;
+                BufferedReader reader = null;
+                StringBuilder json = new StringBuilder();
+                try {
+                    isr = new InputStreamReader(httpConnection.getInputStream(), "UTF-8");
+                    reader = new BufferedReader(isr);
+                    String line;
+                    while ( line = reader.readLine() ) {
+                        json.append(line);
+                    }
+                } finally {
+                    if (reader != null)
+                        reader.close();
+                    if (isr != null)
+                        isr.close();
+                }
+                httpConnection.disconnect();
+
+                String jsonString = json.toString()
+                JSONObject ltiProxyResponse = new JSONObject(jsonString) 
+                return ltiProxyResponse
+            } else {
+                log.debug("ltiProxyRequest.HTTPERROR: Message=" + "BBB server responded with HTTP status code " + responseCode);
+            }
+        } catch(IOException e) {
+            log.debug("ltiProxyRequest.IOException: Message=" + e.getMessage());
+        } catch(IllegalArgumentException e) {
+            log.debug("ltiProxyRequest.IllegalArgumentException: Message=" + e.getMessage());
+        } catch(Exception e) {
+            log.debug("ltiProxyRequest.Exception: Message=" + e.getMessage());
+        }
+    }
+
+    public Map jsonToMap(JSONObject json) throws JSONException
+    {
+        Map<String, Object> retMap = new HashMap<String, Object>();
+
+        if(json != JSONObject.NULL)
+        {
+            retMap = toMap(json);
+        }
+        return retMap;
+    }
+
+    public Map toMap(JSONObject object) throws JSONException
+    {
+        Map<String, Object> map = new HashMap<String, Object>();
+
+        Iterator<String> keysItr = object.keys();
+        while(keysItr.hasNext())
+        {
+            String key = keysItr.next();
+            Object value = object.get(key);
+
+            if(value instanceof JSONArray)
+            {
+                value = toList((JSONArray) value);
+            }
+
+            else if(value instanceof JSONObject)
+            {
+                value = toMap((JSONObject) value);
+            }
+            map.put(key, value);
+        }
+        return map;
+    }
+
+    public List toList(JSONArray array) throws JSONException
+    {
+        List<Object> list = new ArrayList<Object>();
+        for(int i = 0; i < array.length(); i++)
+        {
+            Object value = array.get(i);
+            if(value instanceof JSONArray)
+            {
+                value = toList((JSONArray) value);
+            }
+
+            else if(value instanceof JSONObject)
+            {
+                value = toMap((JSONObject) value);
+            }
+            list.add(value);
+        }
+        return list;
     }
 
 }

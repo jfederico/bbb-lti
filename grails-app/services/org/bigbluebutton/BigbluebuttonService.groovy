@@ -17,34 +17,36 @@ package org.bigbluebutton
     with BigBlueButton; if not, see <http://www.gnu.org/licenses/>.
 */
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStreamReader
+import java.io.StringReader
+import java.net.HttpURLConnection
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
+import net.oauth.OAuth
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
+import java.net.URL
+import java.text.MessageFormat
+import java.util.ArrayList
+import java.util.HashMap
+import java.util.List
+import java.util.Map
+import java.util.Random
 
-import org.apache.commons.codec.digest.DigestUtils;
+import javax.xml.parsers.DocumentBuilder
+import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.parsers.ParserConfigurationException
 
+import org.w3c.dom.Document
+import org.w3c.dom.Node
+import org.w3c.dom.NodeList
+import org.xml.sax.InputSource
+import org.xml.sax.SAXException
+import org.apache.commons.codec.digest.DigestUtils
 import org.bigbluebutton.api.Proxy
 import org.bigbluebutton.lti.Role
 import org.bigbluebutton.lti.Parameter
+import org.imsglobal.basiclti.BasicLTIConstants
 
 class BigbluebuttonService {
 
@@ -77,15 +79,15 @@ class BigbluebuttonService {
 
         String joinURL = null
 
-        String meetingName = getValidatedMeetingName(params.get(Parameter.RESOURCE_LINK_TITLE))
-        String meetingID = getValidatedMeetingId(params.get(Parameter.RESOURCE_LINK_ID), params.get(Parameter.CONSUMER_ID))
-        String attendeePW = DigestUtils.shaHex("ap" + params.get(Parameter.RESOURCE_LINK_ID) + params.get(Parameter.CONSUMER_ID))
-        String moderatorPW = DigestUtils.shaHex("mp" + params.get(Parameter.RESOURCE_LINK_ID) + params.get(Parameter.CONSUMER_ID))
-        String logoutURL = getValidatedLogoutURL(params.get(Parameter.LAUNCH_RETURN_URL))
+        String meetingName = getValidatedMeetingName(params.get(BasicLTIConstants.RESOURCE_LINK_TITLE))
+        String meetingID = getValidatedMeetingId(params.get(BasicLTIConstants.RESOURCE_LINK_ID), params.get(OAuth.OAUTH_CONSUMER_KEY))
+        String attendeePW = DigestUtils.shaHex("ap" + params.get(BasicLTIConstants.RESOURCE_LINK_ID) + params.get(OAuth.OAUTH_CONSUMER_KEY))
+        String moderatorPW = DigestUtils.shaHex("mp" + params.get(BasicLTIConstants.RESOURCE_LINK_ID) + params.get(OAuth.OAUTH_CONSUMER_KEY))
+        String logoutURL = getValidatedLogoutURL(params.get(BasicLTIConstants.LAUNCH_PRESENTATION_RETURN_URL))
         boolean isModerator = isModerator(params)
         String userFullName = getValidatedUserFullName(params, isModerator)
-        String courseTitle = getValidatedCourseTitle(params.get(Parameter.COURSE_TITLE))
-        String userID = getValidatedUserId(params.get(Parameter.USER_ID))
+        String courseTitle = getValidatedCourseTitle(params.get(BasicLTIConstants.CONTEXT_TITLE))
+        String userID = getValidatedUserId(params.get(BasicLTIConstants.USER_ID))
 
         Integer voiceBridge = 0
         String record = false
@@ -128,7 +130,7 @@ class BigbluebuttonService {
         if( !url.equals(bbbProxy.url) && !url.equals("") ) bbbProxy.setUrl(url)
         if( !salt.equals(bbbProxy.salt) && !salt.equals("") ) bbbProxy.setSalt(salt)
 
-        String meetingID = getValidatedMeetingId(params.get(Parameter.RESOURCE_LINK_ID), params.get(Parameter.CONSUMER_ID))
+        String meetingID = getValidatedMeetingId(params.get(BasicLTIConstants.RESOURCE_LINK_ID), params.get(OAuth.OAUTH_CONSUMER_KEY))
 
         String recordingsURL = bbbProxy.getGetRecordingsURL( meetingID )
         log.debug "recordingsURL: " + recordingsURL
@@ -191,7 +193,7 @@ class BigbluebuttonService {
     }
 
     public boolean isModerator(params) {
-        boolean isModerator = params.get(Parameter.ROLES) != null? Role.isModerator(params.get(Parameter.ROLES)): true
+        boolean isModerator = params.get(BasicLTIConstants.ROLES) != null? Role.isModerator(params.get(BasicLTIConstants.ROLES)): true
         return isModerator
     }
 
@@ -215,9 +217,9 @@ class BigbluebuttonService {
     }
 
     private String getValidatedUserFullName(params, boolean isModerator){
-        String userFullName = params.get(Parameter.USER_FULL_NAME)
-        String userFirstName = params.get(Parameter.USER_FIRSTNAME)
-        String userLastName = params.get(Parameter.USER_LASTNAME)
+        String userFullName = params.get(BasicLTIConstants.LIS_PERSON_NAME_FULL)
+        String userFirstName = params.get(BasicLTIConstants.LIS_PERSON_NAME_GIVEN)
+        String userLastName = params.get(BasicLTIConstants.LIS_PERSON_NAME_FAMILY)
         if( userFullName == null || userFullName == "" ){
             if( userFirstName != null && userFirstName != "" ){
                 userFullName = userFirstName
@@ -264,14 +266,14 @@ class BigbluebuttonService {
     private String getMonitoringMetaData(params){
         String meta
 
-        meta = "meta_origin=" + bbbProxy.getStringEncoded(params.get(Parameter.TOOL_CONSUMER_CODE) == null? "": params.get(Parameter.TOOL_CONSUMER_CODE))
-        meta += "&meta_originVersion=" + bbbProxy.getStringEncoded(params.get(Parameter.TOOL_CONSUMER_VERSION) == null? "": params.get(Parameter.TOOL_CONSUMER_VERSION))
-        meta += "&meta_originServerCommonName=" + bbbProxy.getStringEncoded(params.get(Parameter.TOOL_CONSUMER_INSTANCE_DESCRIPTION) == null? "": params.get(Parameter.TOOL_CONSUMER_INSTANCE_DESCRIPTION))
-        meta += "&meta_originServerUrl=" + bbbProxy.getStringEncoded(params.get(Parameter.TOOL_CONSUMER_INSTANCE_URL) == null? "": params.get(Parameter.TOOL_CONSUMER_INSTANCE_URL))
-        meta += "&meta_context=" + bbbProxy.getStringEncoded(params.get(Parameter.COURSE_TITLE) == null? "": params.get(Parameter.COURSE_TITLE))
-        meta += "&meta_contextId=" + bbbProxy.getStringEncoded(params.get(Parameter.COURSE_ID) == null? "": params.get(Parameter.COURSE_ID))
-        meta += "&meta_contextActivity=" + bbbProxy.getStringEncoded(params.get(Parameter.RESOURCE_LINK_TITLE) == null? "": params.get(Parameter.RESOURCE_LINK_TITLE))
-        meta += "&meta_contextActivityDescription=" + bbbProxy.getStringEncoded(params.get(Parameter.RESOURCE_LINK_DESCRIPTION) == null? "": params.get(Parameter.RESOURCE_LINK_DESCRIPTION))
+        meta = "meta_origin=" + bbbProxy.getStringEncoded(params.get(BasicLTIConstants.TOOL_CONSUMER_INFO_PRODUCT_FAMILY_CODE) == null? "": params.get(BasicLTIConstants.TOOL_CONSUMER_INFO_PRODUCT_FAMILY_CODE))
+        meta += "&meta_originVersion=" + bbbProxy.getStringEncoded(params.get(BasicLTIConstants.TOOL_CONSUMER_INFO_VERSION) == null? "": params.get(BasicLTIConstants.TOOL_CONSUMER_INFO_VERSION))
+        meta += "&meta_originServerCommonName=" + bbbProxy.getStringEncoded(params.get(BasicLTIConstants.TOOL_CONSUMER_INSTANCE_DESCRIPTION) == null? "": params.get(BasicLTIConstants.TOOL_CONSUMER_INSTANCE_DESCRIPTION))
+        meta += "&meta_originServerUrl=" + bbbProxy.getStringEncoded(params.get(BasicLTIConstants.TOOL_CONSUMER_INSTANCE_URL) == null? "": params.get(BasicLTIConstants.TOOL_CONSUMER_INSTANCE_URL))
+        meta += "&meta_context=" + bbbProxy.getStringEncoded(params.get(BasicLTIConstants.CONTEXT_TITLE) == null? "": params.get(BasicLTIConstants.CONTEXT_TITLE))
+        meta += "&meta_contextId=" + bbbProxy.getStringEncoded(params.get(BasicLTIConstants.CONTEXT_ID) == null? "": params.get(BasicLTIConstants.CONTEXT_ID))
+        meta += "&meta_contextActivity=" + bbbProxy.getStringEncoded(params.get(BasicLTIConstants.RESOURCE_LINK_TITLE) == null? "": params.get(BasicLTIConstants.RESOURCE_LINK_TITLE))
+        meta += "&meta_contextActivityDescription=" + bbbProxy.getStringEncoded(params.get(BasicLTIConstants.RESOURCE_LINK_DESCRIPTION) == null? "": params.get(BasicLTIConstants.RESOURCE_LINK_DESCRIPTION))
 
         return meta
     }
@@ -385,4 +387,5 @@ class BigbluebuttonService {
         }
         return map;
     }
+
 }
